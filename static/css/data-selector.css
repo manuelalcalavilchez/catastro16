@@ -1,0 +1,119 @@
+/* Data Selector */
+.data-selector {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.data-selector h3 {
+    margin: 0 0 15px 0;
+    color: #333;
+    font-size: 1.1em;
+}
+
+.checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.checkbox-card {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 15px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: block;
+    position: relative;
+}
+
+.checkbox-card:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.15);
+}
+
+.checkbox-card input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.checkbox-card input[type="checkbox"]:checked+.checkbox-content {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.checkbox-card input[type="checkbox"]:checked+.checkbox-content .checkbox-icon {
+    transform: scale(1.2);
+}
+
+.checkbox-card input[type="checkbox"]:checked+.checkbox-content small {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.checkbox-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 10px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.checkbox-icon {
+    font-size: 2em;
+    margin-bottom: 8px;
+    transition: transform 0.3s ease;
+}
+
+.checkbox-label {
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: block;
+}
+
+.checkbox-content small {
+    font-size: 0.85em;
+    color: #666;
+    display: block;
+}
+
+.selector-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    padding-top: 10px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #667eea;
+    cursor: pointer;
+    font-size: 0.9em;
+    text-decoration: underline;
+    padding: 5px 10px;
+}
+
+.btn-link:hover {
+    color: #5568d3;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .checkbox-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .checkbox-grid {
+        grid-template-columns: 1fr;
+    }
+}

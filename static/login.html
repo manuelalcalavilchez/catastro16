@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar Sesión - Catastro SaaS</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>🏘️ Iniciar Sesión</h2>
+
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+
+                <button type="submit" class="btn-primary" style="width: 100%;">
+                    Iniciar Sesión
+                </button>
+            </form>
+
+            <div class="auth-link">
+                ¿No tienes cuenta? <a href="/static/register.html">Regístrate gratis</a>
+            </div>
+
+            <div class="auth-link">
+                <a href="/">← Volver al inicio</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('errorMessage');
+
+            try {
+                // Crear FormData para OAuth2PasswordRequestForm
+                const formData = new FormData();
+                formData.append('username', email);  // OAuth2 usa 'username'
+                formData.append('password', password);
+
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Guardar token
+                    localStorage.setItem('access_token', data.access_token);
+
+                    // Redirigir a dashboard
+                    window.location.href = '/static/dashboard.html';
+                } else {
+                    errorDiv.textContent = data.detail || 'Error al iniciar sesión';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Error de conexión. Intenta de nuevo.';
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+
+</html>

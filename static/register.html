@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrarse - Catastro SaaS</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>🏘️ Crear Cuenta</h2>
+            <p style="text-align: center; color: var(--gray); margin-bottom: 2rem;">
+                Comienza con 3 consultas gratis
+            </p>
+
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="fullName">Nombre Completo</label>
+                    <input type="text" id="fullName" name="fullName" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required minlength="8">
+                    <small style="color: var(--gray);">Mínimo 8 caracteres</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar Contraseña</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" required>
+                </div>
+
+                <div id="errorMessage" class="error-message" style="display: none;"></div>
+                <div id="successMessage" class="success-message" style="display: none;"></div>
+
+                <button type="submit" class="btn-primary" style="width: 100%;">
+                    Crear Cuenta Gratis
+                </button>
+            </form>
+
+            <div class="auth-link">
+                ¿Ya tienes cuenta? <a href="/static/login.html">Inicia sesión</a>
+            </div>
+
+            <div class="auth-link">
+                <a href="/">← Volver al inicio</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const fullName = document.getElementById('fullName').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorDiv = document.getElementById('errorMessage');
+            const successDiv = document.getElementById('successMessage');
+
+            // Limpiar mensajes
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            // Validar contraseñas
+            if (password !== confirmPassword) {
+                errorDiv.textContent = 'Las contraseñas no coinciden';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        email: email,
+                        password: password,
+                        full_name: fullName
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successDiv.textContent = '¡Cuenta creada! Redirigiendo al login...';
+                    successDiv.style.display = 'block';
+
+                    // Redirigir al login después de 2 segundos
+                    setTimeout(() => {
+                        window.location.href = '/static/login.html';
+                    }, 2000);
+                } else {
+                    errorDiv.textContent = data.detail || 'Error al crear la cuenta';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Error de conexión. Intenta de nuevo.';
+                errorDiv.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Catastro SaaS</title>
+    <link rel="stylesheet" href="/static/css/main.css">
+    <link rel="stylesheet" href="/static/css/data-selector.css">
+</head>
+
+<body class="dashboard">
+    <div class="dashboard-header">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h2>🏘️ Catastro SaaS</h2>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <span id="userEmail" style="color: var(--gray);"></span>
+                    <button onclick="logout()" class="btn-outline">Cerrar Sesión</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+        <div class="container">
+            <h1>Dashboard</h1>
+
+            <!-- Estadísticas -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Plan Actual</h3>
+                    <div class="value" id="planType">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Consultas Usadas</h3>
+                    <div class="value" id="queriesUsed">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Límite del Plan</h3>
+                    <div class="value" id="queriesLimit">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Consultas Restantes</h3>
+                    <div class="value" id="queriesRemaining">-</div>
+                </div>
+            </div>
+
+            <!-- Nueva Consulta -->
+            <div class="feature-card" style="margin-top: 2rem;">
+                <h2>Nueva Consulta Catastral</h2>
+                <form id="queryForm" style="margin-top: 1.5rem;">
+                    <div class="form-group">
+                        <label for="referencia">Referencia Catastral</label>
+                        <input type="text" id="referencia" placeholder="Ejemplo: 30037A008002060000UZ" required>
+                    </div>
+
+                    <!-- Selector de datos a descargar -->
+                    <div class="data-selector">
+                        <h3>📦 Selecciona los datos que necesitas:</h3>
+                        <div class="checkbox-grid">
+                            <label class="checkbox-card">
+                                <input type="checkbox" id="check_pdf" checked>
+                                <div class="checkbox-content">
+                                    <span class="checkbox-icon">📄</span>
+                                    <span class="checkbox-label">Informe PDF</span>
+                                    <small>Documento completo</small>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-card">
+                                <input type="checkbox" id="check_mapas" checked>
+                                <div class="checkbox-content">
+                                    <span class="checkbox-icon">🗺️</span>
+                                    <span class="checkbox-label">Mapas</span>
+                                    <small>Catastro y ortofoto</small>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-card">
+                                <input type="checkbox" id="check_clima" checked>
+                                <div class="checkbox-content">
+                                    <span class="checkbox-icon">🌤️</span>
+                                    <span class="checkbox-label">Datos Climáticos</span>
+                                    <small>AEMET</small>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-card">
+                                <input type="checkbox" id="check_socioeconomico" checked>
+                                <div class="checkbox-content">
+                                    <span class="checkbox-icon">📊</span>
+                                    <span class="checkbox-label">Socioeconómicos</span>
+                                    <small>INE</small>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-card">
+                                <input type="checkbox" id="check_kml" checked>
+                                <div class="checkbox-content">
+                                    <span class="checkbox-icon">🌍</span>
+                                    <span class="checkbox-label">KML</span>
+                                    <small>Google Earth</small>
+                                </div>
+                            </label>
+
+                            <label class="checkbox-card">
+                                <input type="checkbox" id="check_gml" checked>
+                                <div class="checkbox-content">
+                                    <span class="checkbox-icon">📐</span>
+                                    <span class="checkbox-label">GML</span>
+                                    <small>Geometría</small>
+                                </div>
+                            </label>
+                        </div>
+
+                        <div class="selector-actions">
+                            <button type="button" onclick="seleccionarTodo()" class="btn-link">Seleccionar todo</button>
+                            <button type="button" onclick="deseleccionarTodo()" class="btn-link">Deseleccionar
+                                todo</button>
+                        </div>
+                    </div>
+
+                    <div id="queryError" class="error-message" style="display: none;"></div>
+                    <div id="querySuccess" class="success-message" style="display: none;"></div>
+
+                    <button type="submit" class="btn-primary">
+                        Procesar Consulta
+                    </button>
+                </form>
+            </div>
+
+            <!-- Historial -->
+            <div class="feature-card" style="margin-top: 2rem;">
+                <h2>Historial de Consultas</h2>
+                <div id="queriesList" style="margin-top: 1.5rem;">
+                    <p style="color: var(--gray);">Cargando...</p>
+                </div>
+            </div>
+
+            <!-- Upgrade -->
+            <div class="feature-card"
+                style="margin-top: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <h2>¿Necesitas más consultas?</h2>
+                <p style="margin: 1rem 0;">Actualiza a Professional y obtén 100 consultas/mes con todos los datos.</p>
+                <a href="/static/pricing.html" class="btn-secondary">Ver Planes</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Verificar autenticación
+        const token = localStorage.getItem('access_token');
+        if (!token) {
+            window.location.href = '/static/login.html';
+        }
+
+        // Función para hacer peticiones autenticadas
+        async function fetchWithAuth(url, options = {}) {
+            const headers = {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                ...options.headers
+            };
+
+            const response = await fetch(url, { ...options, headers });
+
+            if (response.status === 401) {
+                localStorage.removeItem('access_token');
+                window.location.href = '/static/login.html';
+            }
+
+            return response;
+        }
+
+        // Cargar datos del usuario
+        async function loadUserData() {
+            try {
+                const response = await fetchWithAuth('/api/auth/me');
+                const data = await response.json();
+
+                document.getElementById('userEmail').textContent = data.email;
+
+                if (data.subscription) {
+                    document.getElementById('planType').textContent = data.subscription.plan_type.toUpperCase();
+                    document.getElementById('queriesUsed').textContent = data.subscription.queries_used;
+                    document.getElementById('queriesLimit').textContent = data.subscription.queries_limit;
+                    document.getElementById('queriesRemaining').textContent =
+                        data.subscription.queries_limit - data.subscription.queries_used;
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error);
+            }
+        }
+
+        // Cargar historial de consultas
+        async function loadQueries() {
+            try {
+                const response = await fetchWithAuth('/api/catastro/queries');
+                const queries = await response.json();
+
+                const listDiv = document.getElementById('queriesList');
+
+                if (queries.length === 0) {
+                    listDiv.innerHTML = '<p style="color: var(--gray);">No hay consultas todavía</p>';
+                    return;
+                }
+
+                listDiv.innerHTML = queries.map(q => `
+                    <div style="padding: 1rem; border-bottom: 1px solid var(--light-gray);">
+                        <strong>${q.referencia_catastral}</strong>
+                        <br>
+                        <small style="color: var(--gray);">
+                            ${new Date(q.created_at).toLocaleString('es-ES')}
+                        </small>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading queries:', error);
+            }
+        }
+
+        // Procesar nueva consulta
+        document.getElementById('queryForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const referencia = document.getElementById('referencia').value;
+            const errorDiv = document.getElementById('queryError');
+            const successDiv = document.getElementById('querySuccess');
+
+            errorDiv.style.display = 'none';
+            successDiv.style.display = 'none';
+
+            try {
+                const response = await fetchWithAuth('/api/catastro/query', {
+                    method: 'POST',
+                    body: JSON.stringify({ referencia_catastral: referencia })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    successDiv.textContent = '¡Consulta procesada exitosamente!';
+                    successDiv.style.display = 'block';
+                    document.getElementById('referencia').value = '';
+
+                    // Recargar datos
+                    loadUserData();
+                    loadQueries();
+                } else {
+                    errorDiv.textContent = data.detail || 'Error al procesar consulta';
+                    errorDiv.style.display = 'block';
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Error de conexión';
+                errorDiv.style.display = 'block';
+            }
+        });
+
+        // Cerrar sesión
+        function logout() {
+            localStorage.removeItem('access_token');
+            window.location.href = '/';
+        }
+
+        // Funciones para selector de datos
+        function seleccionarTodo() {
+            document.querySelectorAll('.checkbox-card input[type="checkbox"]').forEach(cb => {
+                cb.checked = true;
+            });
+        }
+
+        function deseleccionarTodo() {
+            document.querySelectorAll('.checkbox-card input[type="checkbox"]').forEach(cb => {
+                cb.checked = false;
+            });
+        }
+
+        function obtenerFiltrosSeleccionados() {
+            return {
+                pdf: document.getElementById('check_pdf').checked,
+                mapas: document.getElementById('check_mapas').checked,
+                clima: document.getElementById('check_clima').checked,
+                socioeconomico: document.getElementById('check_socioeconomico').checked,
+                kml: document.getElementById('check_kml').checked,
+                gml: document.getElementById('check_gml').checked
+            };
+        }
+
+        // Cargar datos al iniciar
+        loadUserData();
+        loadQueries();
+    </script>
+</body>
+
+</html>
