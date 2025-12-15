@@ -1,12 +1,23 @@
 FROM python:3.11-slim
 
-# Instalar dependencias del sistema necesarias para psycopg (driver PostgreSQL)
+# Instalar dependencias del sistema para PostgreSQL, GDAL, Cairo y librerías científicas
 RUN apt-get update && apt-get install -y \
     gcc \
+    g++ \
     libpq-dev \
     gdal-bin \
     libgdal-dev \
+    libgeos-dev \
+    libproj-dev \
+    libspatialindex-dev \
+    libcairo2-dev \
+    pkg-config \
+    libfreetype6-dev \
+    libpng-dev \
     && rm -rf /var/lib/apt/lists/*
+
+# Configurar variable de entorno para GDAL
+ENV GDAL_CONFIG=/usr/bin/gdal-config
 
 # Crear directorio de trabajo
 WORKDIR /app
@@ -22,6 +33,4 @@ COPY . .
 EXPOSE 8001
 
 # Comando de arranque para EasyPanel
-# Se asume que las migraciones se corren al inicio en app.py o via script separado.
-# Para producción es mejor workers multiples con gunicorn, pero uvicorn directo es aceptable.
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8001"]
