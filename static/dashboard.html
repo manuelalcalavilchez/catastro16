@@ -205,16 +205,16 @@
                     listDiv.innerHTML = '<p style="color: var(--gray);">No hay consultas todavía</p>';
                     return;
                 }
-
-                listDiv.innerHTML = queries.map(q => `
-                    <div style="padding: 1rem; border-bottom: 1px solid var(--light-gray);">
-                        <strong>${q.referencia_catastral}</strong>
-                        <br>
-                        <small style="color: var(--gray);">
-                            ${new Date(q.created_at).toLocaleString('es-ES')}
-                        </small>
-                    </div>
-                `).join('');
+  listDiv.innerHTML = queries.map(q => `
+                <div style="padding: 1rem; border-bottom: 1px solid var(--light-gray); cursor: pointer; transition: background 0.2s;" 
+                     onmouseenter="this.style.background='#f8f9fa'" 
+                     onmouseleave="this.style.background='white'"
+                     onclick="window.location.href='/static/results.html?id=${q.id}'">
+                    <strong style="color: #667eea;">${q.referencia_catastral}</strong>
+                    <br>
+                    <small style="color: var(--gray);">${new Date(q.created_at).toLocaleString('es-ES')}</small>
+                </div>
+            `).join('');
             } catch (error) {
                 console.error('Error loading queries:', error);
             }
